@@ -1,23 +1,24 @@
-# Use Debian-based Node image for better Prisma compatibility
 FROM node:20-bullseye
 
-# Set working directory
+# Install PostgreSQL client
+RUN apt-get update && \
+    apt-get install -y postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies reliably
+RUN npm set fetch-retries 5 \
+    && npm set fetch-retry-factor 2 \
+    && npm set fetch-timeout 120000 \
+    && npm ci --registry=https://registry.npmjs.org/
 
-# Copy the rest of the app
 COPY . .
 
-# Generate Prisma client
 RUN npx prisma generate
 
-# Expose backend port
 EXPOSE 4000
 
-# Run backend
 CMD ["npm", "run", "dev"]

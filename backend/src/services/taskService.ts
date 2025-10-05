@@ -12,7 +12,7 @@ export const getRecentTasks=async()=>{
 }
 
 //create a new task
-export const createTask=async(title:String,description:String)=>{
+export const createTask=async(title:string,description:string)=>{
     return prisma.task.create({
         data:{
             title,

@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:15
@@ -12,7 +14,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      network: host   # use host network to fix Windows npm issues
     restart: always
     depends_on:
       - db
@@ -20,7 +24,12 @@ services:
       DATABASE_URL: "postgresql://todo_user:todo_pass@db:5432/todo_db?schema=public"
     ports:
       - "4000:4000"
-    command: sh -c "npx prisma migrate deploy && npm run dev"
+    command: sh -c "
+      echo 'Waiting for db...';
+      until pg_isready -h db -p 5432 -U todo_user; do sleep 2; done;
+      echo 'Database ready, running migrations...';
+      npx prisma migrate dev --name init --skip-seed;
+      npm run dev"
 
 volumes:
   postgres_data:
