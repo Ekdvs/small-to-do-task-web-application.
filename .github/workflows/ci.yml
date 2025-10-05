@@ -1,0 +1,59 @@
+name: CI - ToDo App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: todo_user
+          POSTGRES_PASSWORD: todo_pass
+          POSTGRES_DB: todo_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U todo_user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Generate Prisma Client (if using Prisma)
+        run: |
+          cd backend
+          npx prisma generate
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql://todo_user:todo_pass@localhost:5432/todo_db?schema=public
+        run: |
+          cd backend
+          npx prisma migrate deploy
+
+      - name: Run tests 🧪
+        env:
+          DATABASE_URL: postgresql://todo_user:todo_pass@localhost:5432/todo_db?schema=public
+        run: |
+          cd backend
+          npm test
