@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
+    "types": ["jest", "@testing-library/jest-dom"],
+    "jsx": "react-jsx",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true
