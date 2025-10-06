@@ -8,7 +8,7 @@ describe("Task API", () => {
       .send({ title: "Test Task", description: "This is a test task" });
 
     expect(response.statusCode).toBe(201);
-    expect(response.body.data.title).toBe("Test Task");              // ✅ changed
+    expect(response.body.data.title).toBe("Test Task");              
     expect(response.body.data.description).toBe("This is a test task");  // ✅ changed
   });
 
