@@ -22,7 +22,7 @@ export const getRecentTasks = async()=>{
 }
 
 export const markTaskDone = async(id:number)=>{
-    const response = await axios.patch(`${BASE_URL}/api/tasks//${id}mark-done`);
+    const response = await axios.patch(`${BASE_URL}/api/tasks/mark-done/${id}`);
     return response.data.data as Task;
 }
 
