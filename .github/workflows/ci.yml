@@ -25,6 +25,9 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+    env:
+      DATABASE_URL: postgresql://todo_user:todo_pass@localhost:5432/todo_db?schema=public
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,26 +37,46 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      # ---------------- BACKEND ----------------
+      - name: Install backend dependencies
         run: |
           cd backend
-          npm install
+          npm ci
 
-      - name: Generate Prisma Client (if using Prisma)
+      - name: Generate Prisma Client
         run: |
           cd backend
           npx prisma generate
 
-      - name: Run migrations
-        env:
-          DATABASE_URL: postgresql://todo_user:todo_pass@localhost:5432/todo_db?schema=public
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          until pg_isready -h localhost -p 5432 -U todo_user; do
+            sleep 2
+          done
+
+      - name: Run Prisma Migrations
         run: |
           cd backend
           npx prisma migrate deploy
 
-      - name: Run tests 🧪
-        env:
-          DATABASE_URL: postgresql://todo_user:todo_pass@localhost:5432/todo_db?schema=public
+      - name: Run Backend Tests
         run: |
           cd backend
           npm test
+
+      # ---------------- FRONTEND ----------------
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Frontend Tests
+        run: |
+          cd frontend
+          npm test -- --watchAll=false
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
